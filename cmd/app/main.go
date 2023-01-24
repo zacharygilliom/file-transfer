@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/zacharygilliom/file-transfer/internal/gmail"
 
 func main() {
-	fmt.Println("Hello, World!")
+	gmail.VerifyGmail()
 }
