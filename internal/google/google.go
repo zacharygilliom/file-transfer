@@ -64,7 +64,7 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	return tok
 }
 
-func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest) string {
+func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest, photos []string) (string, []string) {
 	var nextPageToken string
 	mItems := p.MediaItems
 	searchParams := mItems.Search(&searchFilters)
@@ -73,10 +73,10 @@ func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchM
 		log.Fatal(err)
 	}
 	for _, v := range result.MediaItems {
-		fmt.Println(v.ProductUrl)
+		photos = append(photos, v.BaseUrl)
 	}
 	nextPageToken = result.NextPageToken
-	return nextPageToken
+	return nextPageToken, photos
 
 }
 
@@ -100,14 +100,16 @@ func VerifyPhotosService() (*photoslibrary.Service, error) {
 
 }
 
-func GetPhotos(pl *photoslibrary.Service) {
+// GetPhotos returns an array of downloaded urls
+func GetPhotos(pl *photoslibrary.Service) []string {
+	photos := []string{}
 	var nextPageToken string
 	searchFilters := photoslibrary.SearchMediaItemsRequest{PageSize: 50}
-	nextPageToken = getMediaItems(pl, searchFilters)
-
+	nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
 	for nextPageToken != "" {
 		searchFilters.PageToken = nextPageToken
-		getMediaItems(pl, searchFilters)
+		nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
 	}
+	return photos
 
 }

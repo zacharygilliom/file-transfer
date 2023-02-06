@@ -5,6 +5,7 @@ import (
 
 	"github.com/zacharygilliom/file-transfer/internal/google"
 	"github.com/zacharygilliom/file-transfer/internal/system"
+	"github.com/zacharygilliom/file-transfer/internal/transfer"
 )
 
 func main() {
@@ -12,6 +13,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	google.GetPhotos(pl)
-	system.CreatePhotoDirectory("/home/zach/googlephotos")
+	photos := google.GetPhotos(pl)
+	dirName := "/home/zach/googlephotos"
+	system.CreatePhotoDirectory(dirName)
+	transfer.GetFiles(photos, dirName)
+	//transfer.DownloadFile(photos)
 }
