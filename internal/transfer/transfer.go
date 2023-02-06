@@ -1,0 +1,5 @@
+package transfer
+
+func movePictures() {
+
+}

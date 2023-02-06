@@ -1,4 +1,4 @@
-package gmail
+package google
 
 import (
 	"context"
@@ -80,8 +80,8 @@ func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchM
 
 }
 
-//VerifyGmail will start our api connection to google photos
-func VerifyGmail() {
+//VerifyPhotosService will start our api connection to google photos
+func VerifyPhotosService() (*photoslibrary.Service, error) {
 
 	configFile, err := os.ReadFile("config/credentials.json")
 	if err != nil {
@@ -96,14 +96,18 @@ func VerifyGmail() {
 
 	photosService, err := photoslibrary.New(client)
 
+	return photosService, err
+
+}
+
+func GetPhotos(pl *photoslibrary.Service) {
 	var nextPageToken string
 	searchFilters := photoslibrary.SearchMediaItemsRequest{PageSize: 50}
-	nextPageToken = getMediaItems(photosService, searchFilters)
+	nextPageToken = getMediaItems(pl, searchFilters)
 
-	//While more photos are found, they will be continually printed.
 	for nextPageToken != "" {
 		searchFilters.PageToken = nextPageToken
-		getMediaItems(photosService, searchFilters)
+		getMediaItems(pl, searchFilters)
 	}
 
 }
