@@ -65,6 +65,7 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 }
 
 func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest, photos []string) (string, []string) {
+	// TODO: Need to add logic to download photos vs download videos
 	var nextPageToken string
 	mItems := p.MediaItems
 	searchParams := mItems.Search(&searchFilters)
@@ -82,7 +83,6 @@ func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchM
 
 //VerifyPhotosService will start our api connection to google photos
 func VerifyPhotosService() (*photoslibrary.Service, error) {
-
 	configFile, err := os.ReadFile("config/credentials.json")
 	if err != nil {
 		log.Fatal(err)
