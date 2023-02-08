@@ -64,8 +64,8 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	return tok
 }
 
-func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest, photos []string) (string, []string) {
-	// TODO: Need to add logic to download photos vs download videos
+func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest, items map[string][]string) (string, map[string][]string) {
+	// TODO: Implement better way to store the data in the items map
 	var nextPageToken string
 	mItems := p.MediaItems
 	searchParams := mItems.Search(&searchFilters)
@@ -74,10 +74,14 @@ func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchM
 		log.Fatal(err)
 	}
 	for _, v := range result.MediaItems {
-		photos = append(photos, v.BaseUrl)
+		if v.MimeType == "image/jpeg" {
+			items["photos"] = append(items["photos"], v.BaseUrl)
+		} else if v.MimeType == "video/mp4" {
+			items["videos"] = append(items["photos"], v.BaseUrl)
+		}
 	}
 	nextPageToken = result.NextPageToken
-	return nextPageToken, photos
+	return nextPageToken, items
 
 }
 
@@ -101,15 +105,21 @@ func VerifyPhotosService() (*photoslibrary.Service, error) {
 }
 
 // GetPhotos returns an array of downloaded urls
-func GetPhotos(pl *photoslibrary.Service) []string {
+func GetPhotos(pl *photoslibrary.Service) map[string][]string {
+	items := make(map[string][]string)
 	photos := []string{}
+	videos := []string{}
+	items["photos"] = photos
+	items["videos"] = videos
 	var nextPageToken string
 	searchFilters := photoslibrary.SearchMediaItemsRequest{PageSize: 50}
-	nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
+	//nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
+	nextPageToken, items = getMediaItems(pl, searchFilters, items)
 	for nextPageToken != "" {
 		searchFilters.PageToken = nextPageToken
-		nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
+		nextPageToken, items = getMediaItems(pl, searchFilters, items)
+		//nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
 	}
-	return photos
+	return items
 
 }

@@ -13,9 +13,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	photos := google.GetPhotos(pl)
+	items := google.GetPhotos(pl)
 	dirName := "/home/zach/googlephotos"
 	system.CreatePhotoDirectory(dirName)
-	transfer.GetFiles(photos, dirName)
-	//transfer.DownloadFile(photos)
+	transfer.GetFiles(items, dirName)
+	//transfer.DownloadFile(items)
 }
