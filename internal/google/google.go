@@ -13,6 +13,13 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// Photos holds all the data returned from getMediaItems
+type Photos struct {
+	Name     string
+	URL      string
+	MimeType string
+}
+
 // Retrieves a token from a local file.
 func tokenFromFile(file string) (*oauth2.Token, error) {
 	f, err := os.Open(file)
@@ -64,27 +71,6 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	return tok
 }
 
-func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest, items map[string][]string) (string, map[string][]string) {
-	// TODO: Implement better way to store the data in the items map
-	var nextPageToken string
-	mItems := p.MediaItems
-	searchParams := mItems.Search(&searchFilters)
-	result, err := searchParams.Do()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, v := range result.MediaItems {
-		if v.MimeType == "image/jpeg" {
-			items["photos"] = append(items["photos"], v.BaseUrl)
-		} else if v.MimeType == "video/mp4" {
-			items["videos"] = append(items["photos"], v.BaseUrl)
-		}
-	}
-	nextPageToken = result.NextPageToken
-	return nextPageToken, items
-
-}
-
 //VerifyPhotosService will start our api connection to google photos
 func VerifyPhotosService() (*photoslibrary.Service, error) {
 	configFile, err := os.ReadFile("config/credentials.json")
@@ -104,22 +90,32 @@ func VerifyPhotosService() (*photoslibrary.Service, error) {
 
 }
 
+func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest, rA []Photos) (string, []Photos) {
+	// TODO: fix how the goroutine is unbuffered and wont accept more data until it is taken
+	var nextPageToken string
+	mItems := p.MediaItems
+	searchParams := mItems.Search(&searchFilters)
+	result, err := searchParams.Do()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, v := range result.MediaItems {
+		var photo = Photos{v.Filename, v.BaseUrl, v.MimeType}
+		rA = append(rA, photo)
+	}
+	nextPageToken = result.NextPageToken
+	return nextPageToken, rA
+}
+
 // GetPhotos returns an array of downloaded urls
-func GetPhotos(pl *photoslibrary.Service) map[string][]string {
-	items := make(map[string][]string)
-	photos := []string{}
-	videos := []string{}
-	items["photos"] = photos
-	items["videos"] = videos
+func GetPhotos(pl *photoslibrary.Service) []Photos {
+	var resultsArray []Photos
 	var nextPageToken string
 	searchFilters := photoslibrary.SearchMediaItemsRequest{PageSize: 50}
-	//nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
-	nextPageToken, items = getMediaItems(pl, searchFilters, items)
+	nextPageToken, resultsArray = getMediaItems(pl, searchFilters, resultsArray)
 	for nextPageToken != "" {
 		searchFilters.PageToken = nextPageToken
-		nextPageToken, items = getMediaItems(pl, searchFilters, items)
-		//nextPageToken, photos = getMediaItems(pl, searchFilters, photos)
+		nextPageToken, resultsArray = getMediaItems(pl, searchFilters, resultsArray)
 	}
-	return items
-
+	return resultsArray
 }

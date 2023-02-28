@@ -2,23 +2,24 @@ package transfer
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"strconv"
+
+	"github.com/zacharygilliom/file-transfer/internal/google"
 )
 
 // GetFiles takes in a list of urls and downloads and saves each one.
-func GetFiles(URLs map[string][]string, dir string) {
-	// TODO: Implement goroutines here
-	for i, v := range URLs["photos"] {
-		name := dir + "/photo_" + strconv.Itoa(i) + ".jpeg"
-		DownloadFile(v, name, "=w2048-h1024")
+func GetFiles(c chan google.Photos, dir string) {
+	// TODO: Turn this into a goroutine that concurrently downloads the files
+	fmt.Println("GetFiles called")
+	for n := range c {
+		name := dir + "/" + n.Name
+		DownloadFile(n.URL, name, "=w2048-h1024")
+		fmt.Println("Download Completed")
 	}
-	for j, p := range URLs["videos"] {
-		name := dir + "/photo_" + strconv.Itoa(j) + ".mp4"
-		DownloadFile(p, name, "=dv")
-	}
+
 }
 
 //DownloadFile takes in a pictures url and a name for the new file and downloads it into the directory.
