@@ -19,3 +19,7 @@ func CreatePhotoDirectory(directory string) {
 		fmt.Printf("Directory %v Already Exists\n", folderInfo.Name())
 	}
 }
+
+func getCurrentPhotoIds() {
+
+}

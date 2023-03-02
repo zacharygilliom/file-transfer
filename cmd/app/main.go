@@ -24,5 +24,5 @@ func main() {
 	dirName := "/home/zach/googlephotos"
 	system.CreatePhotoDirectory(dirName)
 	transfer.GetFiles(c, dirName)
-	fmt.Println("program closed")
+	fmt.Println("Program Completed")
 }

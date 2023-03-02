@@ -15,9 +15,11 @@ import (
 
 // Photos holds all the data returned from getMediaItems
 type Photos struct {
-	Name     string
-	URL      string
-	MimeType string
+	ID           string
+	Name         string
+	URL          string
+	MimeType     string
+	CreationTime string
 }
 
 // Retrieves a token from a local file.
@@ -91,7 +93,6 @@ func VerifyPhotosService() (*photoslibrary.Service, error) {
 }
 
 func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchMediaItemsRequest, rA []Photos) (string, []Photos) {
-	// TODO: fix how the goroutine is unbuffered and wont accept more data until it is taken
 	var nextPageToken string
 	mItems := p.MediaItems
 	searchParams := mItems.Search(&searchFilters)
@@ -100,7 +101,7 @@ func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchM
 		log.Fatal(err)
 	}
 	for _, v := range result.MediaItems {
-		var photo = Photos{v.Filename, v.BaseUrl, v.MimeType}
+		var photo = Photos{v.Id, v.Filename, v.BaseUrl, v.MimeType, v.MediaMetadata.CreationTime}
 		rA = append(rA, photo)
 	}
 	nextPageToken = result.NextPageToken
