@@ -16,13 +16,8 @@ func main() {
 		log.Fatal(err)
 	}
 	items := google.GetPhotos(pl)
-	c := make(chan google.Photos, len(items))
-	for _, a := range items {
-		c <- a
-	}
-	close(c)
 	dirName := "/home/zach/googlephotos"
 	system.CreatePhotoDirectory(dirName)
-	transfer.GetFiles(c, dirName)
+	transfer.GetFiles(items, dirName)
 	fmt.Println("Program Completed")
 }

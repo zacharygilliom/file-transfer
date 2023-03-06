@@ -7,18 +7,20 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/zacharygilliom/file-transfer/internal/google"
 )
 
 // GetFiles takes in a list of urls and downloads and saves each one.
-func GetFiles(c chan google.Photos, dir string) {
-	// TODO: Turn this into a goroutine that concurrently downloads the files
+func GetFiles(c []google.Photos, dir string) {
 	fmt.Println("GetFiles called")
 	var wg sync.WaitGroup
-	for n := range c {
+	for _, n := range c {
 		wg.Add(1)
+		n := n
 		go DownloadFile(n, &wg, dir)
+		time.Sleep(15 * time.Millisecond)
 	}
 	wg.Wait()
 }
