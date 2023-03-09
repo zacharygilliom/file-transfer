@@ -15,9 +15,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	items := google.GetPhotos(pl)
+	var latestPhotoDate system.PhotosDateTime
 	dirName := "/home/zach/googlephotos"
+	latestPhotoDate = system.GetCurrentPhotoIds(dirName)
 	system.CreatePhotoDirectory(dirName)
+	items := google.GetPhotos(pl, latestPhotoDate)
 	transfer.GetFiles(items, dirName)
 	fmt.Println("Program Completed")
 }

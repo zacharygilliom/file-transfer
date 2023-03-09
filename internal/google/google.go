@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gphotosuploader/googlemirror/api/photoslibrary/v1"
+	"github.com/zacharygilliom/file-transfer/internal/system"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -109,14 +111,45 @@ func getMediaItems(p *photoslibrary.Service, searchFilters photoslibrary.SearchM
 }
 
 // GetPhotos returns an array of downloaded urls
-func GetPhotos(pl *photoslibrary.Service) []Photos {
+func GetPhotos(pl *photoslibrary.Service, latestPhotoDate system.PhotosDateTime) []Photos {
+	endYear, endMonth, endDay := time.Now().Date()
 	var resultsArray []Photos
 	var nextPageToken string
-	searchFilters := photoslibrary.SearchMediaItemsRequest{PageSize: 50}
-	nextPageToken, resultsArray = getMediaItems(pl, searchFilters, resultsArray)
+
+	var latestDate *photoslibrary.Date
+	latestDate = new(photoslibrary.Date)
+	latestDate.Day = latestPhotoDate.Day
+	latestDate.Month = latestPhotoDate.Month
+	latestDate.Year = latestPhotoDate.Year
+
+	var todayDate *photoslibrary.Date
+	todayDate = new(photoslibrary.Date)
+	todayDate.Day = int64(endDay)
+	todayDate.Year = int64(endYear)
+	todayDate.Month = int64(endMonth)
+
+	var dateRange *photoslibrary.DateRange
+	dateRange = new(photoslibrary.DateRange)
+	dateRange.StartDate = latestDate
+	dateRange.EndDate = todayDate
+	dateRangeSlice := make([]*photoslibrary.DateRange, 1)
+	dateRangeSlice = append(dateRangeSlice, dateRange)
+
+	var dateFilter *photoslibrary.DateFilter
+	dateFilter = new(photoslibrary.DateFilter)
+	dateFilter.Ranges = dateRangeSlice
+
+	var searchFilters *photoslibrary.Filters
+	searchFilters = new(photoslibrary.Filters)
+	searchFilters.DateFilter = dateFilter
+
+	var searchMediaRequest photoslibrary.SearchMediaItemsRequest
+	searchMediaRequest.PageSize = 50
+	searchMediaRequest.Filters = searchFilters
+	nextPageToken, resultsArray = getMediaItems(pl, searchMediaRequest, resultsArray)
 	for nextPageToken != "" {
-		searchFilters.PageToken = nextPageToken
-		nextPageToken, resultsArray = getMediaItems(pl, searchFilters, resultsArray)
+		searchMediaRequest.PageToken = nextPageToken
+		nextPageToken, resultsArray = getMediaItems(pl, searchMediaRequest, resultsArray)
 	}
 	return resultsArray
 }
